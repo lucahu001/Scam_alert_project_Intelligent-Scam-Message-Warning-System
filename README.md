@@ -1,43 +1,79 @@
-Intelligent Scam Message Warning System
-# Project Title
+# AI Scam Alert — Intelligent Scam Message Warning System
 
-AI SCAM ALERT 
+Upload a screenshot of a suspicious conversation; the system classifies it as
+fraudulent or legitimate.
 
-## Project Description
+## Background
 
-Social-commerce platforms such as Facebook Marketplace, group-buying pages, and third-party services like 7-Eleven MyShip, Shopee, and PChome now dominate online shopping in Taiwan. Fraud has surged in these spaces. Criminal Investigation Bureau data for October 2024 list online-shopping scams as the second most common fraud type, accounting for 14.41 percent of all reported cases, just behind investment scams. Therefore, our model is quite important in nowadays network environment.
+Social-commerce platforms dominate online shopping in Taiwan, and fraud has
+followed. Criminal Investigation Bureau data for October 2024 lists
+online-shopping scams as the second most common fraud type at 14.41% of all
+reported cases, behind only investment scams.
 
-This model uses a total 210 images (screenshots) of normal and scam online conversations as the database for training our model. It uses two different models: gpt-3.5-turbo and gpt-4o to compare which is the best fit for our ai scam alert. We used OCR method to extract the text in those images for our models to identify, classify, and in the end provide an answer advicing our users whether the screenshots they uploaded are more likely fraud conversations that should be aware of, or it is just a normal conversations that the user can continue chatting without fear.
+## Approach
 
+We built and compared two architectures on a dataset of 210 labelled
+screenshots (104 for training, 106 for testing):
 
-## Getting Started
+**Pipeline A — OCR + fine-tuned model**
+Tesseract OCR (`chi_tra`) extracts Traditional Chinese text from the
+screenshot → text is structured into a labelled dataset → `gpt-3.5-turbo-1106`
+is fine-tuned on it via the OpenAI fine-tuning API.
 
-Several items should be installed before running our model, including 104 original images for preliminary training and 106 images for testing our model. Moreover, the program requires you to install openai and Tesseract OCR engine to successfully run our model.
-
-## File Structure
-
-We organized our files using a consistent naming convention: scam conversation samples were labeled as “詐騙對話-XX.jpg” and normal conversation samples as “正常對話-XX.jpg.” These labeled files were then uploaded to Google Drive, allowing for efficient access and organization of the dataset. This approach facilitates the seamless retrieval of data during model development and programming, ensuring that the training process remains systematic and well-structured.
-
-
-## Analysis
-
-We found out that gpt-4o has came out a better result comparing to the one that was handled by gpt-3.5-turbo. Gpt-4o delivered as accuracy rate of 89.42% in the preliminary training process and 77.36% in the final testing process. While gpt-3.5-turbo only came up with 70.19% in the preliminary training process and 37.74% in the final testing process.
-
-During initial training with the gpt-3.5-turbo model using our dataset of 104 conversation samples, we observed an accuracy rate of 70.19%. However, when we revisited the same model a few weeks later, the reported accuracy unexpectedly increased to 94.17%, despite no changes to the training data. This sudden and significant fluctuation left us uncertain about the underlying cause—whether it stemmed from improvements in the model’s internal capabilities or was a symptom of overfitting.
+**Pipeline B — multimodal**
+The image is base64-encoded and sent directly to `gpt-4o`. No text extraction
+step.
 
 ## Results
 
-Moreover, while we attempted to optimize the OCR process for gpt-3.5-turbo—including techniques such as enlarging images and applying grayscale filters to reduce noise—these adjustments had limited impact on improving accuracy. The inherent dependence on OCR ultimately constrained gpt-3.5-turbo’s ability to produce consistent and reliable results. Given these limitations, gpt-4o stands out as the more effective and practical choice for our project.
+| Model | Training set (104) | Test set (106) |
+|---|---|---|
+| gpt-4o (multimodal) | 89.42% | 77.36% |
+| gpt-3.5-turbo (OCR + fine-tuned) | 70.19% | 37.74% |
 
-## Contributors
+OCR was the bottleneck. We tried upscaling images and applying grayscale
+filters to reduce noise, but Traditional Chinese extraction remained
+unreliable enough that errors upstream propagated through everything
+downstream. Removing the OCR step entirely — Pipeline B — was what closed the
+gap.
 
-111ZU1002 黃天慧 Alani (PM)
-111ZU1010 胡楚逸 Luca (programme)
-111ZU1058 黃芊婷 Patricia (programme)
-111ZU1061 黃晟恩 Andy (poster design)
+## An unresolved observation
 
+Re-running the fine-tuned gpt-3.5-turbo on the same 104-sample training set
+weeks later returned 94.17%, up from 70.19%, with no change to the training
+data. We could not determine whether this reflected a change in the
+underlying model or overfitting on our side. We are reporting it as
+unresolved rather than quoting the higher figure.
 
-## Acknowledgments
+## Running it
 
-We would like to express our sincere gratitude to our instructor, Professor Pien Chung-pei, and our teaching assistant for their invaluable support throughout this project. Their guidance was instrumental during both the brainstorming and programming stages, and their insights greatly contributed to the overall success of our work.
+Requirements:
+- `openai`, `pytesseract`, `pandas`, `natsort`, `Pillow`
+- Tesseract OCR engine with the Traditional Chinese pack
+  (`tesseract-ocr`, `tesseract-ocr-chi-tra`)
+- An OpenAI API key in the environment:
 
+```bash
+export OPENAI_API_KEY="your-key-here"
+```
+
+The notebook is written for Google Colab and mounts Google Drive for the
+image dataset. Dataset images follow the naming convention
+`詐騙對話-XX.jpg` (scam) and `正常對話-XX.jpg` (normal); ground-truth labels
+are parsed from the filename.
+
+Note: the fine-tuned model ID in the notebook
+(`ft:gpt-3.5-turbo-1106:ici::BdSO0syF`) belongs to the original project
+account and is not accessible to others. Pipeline B (gpt-4o) runs with any
+valid API key.
+
+## Team
+
+| | |
+|---|---|
+| 黃天慧 Alani | Project manager |
+| 胡楚逸 Luca | Development |
+| 黃芊婷 Patricia | Development |
+| 黃晟恩 Andy | Poster design |
+
+Supervised by Professor Pien Chung-pei, National Chengchi University.
