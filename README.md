@@ -21,7 +21,6 @@ We organized our files using a consistent naming convention: scam conversation s
 
 ## Analysis
 
-[Describe your analysis methods and include any visualizations or graphics that you used to present your findings. Explain the insights that you gained from your analysis and how they relate to your research question or problem statement.]
 We found out that gpt-4o has came out a better result comparing to the one that was handled by gpt-3.5-turbo. Gpt-4o delivered as accuracy rate of 89.42% in the preliminary training process and 77.36% in the final testing process. While gpt-3.5-turbo only came up with 70.19% in the preliminary training process and 37.74% in the final testing process.
 
 During initial training with the gpt-3.5-turbo model using our dataset of 104 conversation samples, we observed an accuracy rate of 70.19%. However, when we revisited the same model a few weeks later, the reported accuracy unexpectedly increased to 94.17%, despite no changes to the training data. This sudden and significant fluctuation left us uncertain about the underlying cause—whether it stemmed from improvements in the model’s internal capabilities or was a symptom of overfitting.
